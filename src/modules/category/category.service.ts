@@ -1,50 +1,21 @@
-import { prisma } from "../../lib/prisma";
+import { prisma } from "../../lib/prisma.js";
 
-const createCategory = async (subjectName: string) => {
-    const isExist = await prisma.category.findUnique({
-        where: { name: subjectName },
-    });
-
-    if (isExist) {
-        throw new Error(`Subject '${subjectName}' already exists.`);
+const createCategory = async (name: String) => {
+  const slug = name.toLowerCase().replace(/\s+/g, '-');
+  
+  return await prisma.category.create({
+    data: {
+      name: name as string,
+      slug: slug
     }
-
-    return await prisma.category.create({
-        data: { name: subjectName },
-    });
+  });
 };
 
 const getAllCategories = async () => {
-    return await prisma.category.findMany({
-        include: {
-            tutors: {
-                select: {
-                    id: true 
-                }
-            }
-        },
-        orderBy: {
-            name: 'asc'
-        }
-    });
-};
-
-const updateCategoryInDB = async (id: string, name: string) => {
-    return await prisma.category.update({
-        where: { id },
-        data: { name: name }
-    });
-};
-
-const deleteCategoryFromDB = async (id: string) => {
-    return await prisma.category.delete({
-        where: { id }
-    });
+  return await prisma.category.findMany();
 };
 
 export const CategoryService = {
-    createCategory,
-    getAllCategories,
-    updateCategoryInDB,
-    deleteCategoryFromDB
+  createCategory,
+  getAllCategories
 };

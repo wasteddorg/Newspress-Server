@@ -7,120 +7,84 @@ datasource db {
 }
 
 enum Role {
-  STUDENT
-  TUTOR
+  USER
   ADMIN
 }
 
-enum BookingStatus {
-  PENDING
-  CONFIRMED
-  COMPLETED
-  CANCELLED
-}
-
-enum UserStatus {
-  ACTIVE
-  BLOCKED
-  SUSPENDED
-}
-
 model User {
-  id            String     @id @default(uuid())
+  id            String  @id @default(cuid())
   name          String
-  email         String     @unique
-  emailVerified Boolean
+  email         String  @unique
+  emailVerified Boolean @default(false)
   image         String?
-  role          Role       @default(STUDENT)
-  status        UserStatus @default(ACTIVE)
-  createdAt     DateTime   @default(now())
-  updatedAt     DateTime   @updatedAt
+  role          Role    @default(USER)
+
+  posts    Post[]
+  comments Comment[]
 
   sessions Session[]
   accounts Account[]
 
-  tutorProfile    TutorProfile?
-  studentBookings Booking[]     @relation("StudentToBooking")
-  reviews         Review[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("user")
 }
 
-model TutorProfile {
-  id            String   @id @default(uuid())
-  userId        String   @unique
-  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  bio           String   @db.Text
-  pricePerHour  Float
-  experience    Int
-  averageRating Float    @default(0.0)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-
-  categories Category[]         @relation("TutorCategories")
-  slots      AvailabilitySlot[]
-  bookings   Booking[]          @relation("TutorToBooking")
-  reviews    Review[]           @relation("TutorToReview")
-
-  @@index([pricePerHour])
-}
-
 model Category {
-  id     String         @id @default(uuid())
-  name   String         @unique
-  tutors TutorProfile[] @relation("TutorCategories")
+  id        String   @id @default(cuid())
+  name      String   @unique
+  slug      String   @unique
+  posts     Post[]
+  createdAt DateTime @default(now())
 }
 
-model AvailabilitySlot {
-  id        String       @id @default(uuid())
-  tutorId   String
-  tutor     TutorProfile @relation(fields: [tutorId], references: [id], onDelete: Cascade)
-  startTime DateTime
-  endTime   DateTime
-  isBooked  Boolean      @default(false)
+model Post {
+  id            String  @id @default(cuid())
+  title         String
+  slug          String  @unique
+  content       String  @db.Text
+  summary       String? @db.Text
+  featuredImage String
+  imageCaption  String?
+  videoUrl      String?
 
-  bookings Booking[] @relation("SlotToBooking")
+  isFeatured Boolean @default(false)
+  isBreaking Boolean @default(false)
+  viewCount  Int     @default(0)
+  status     String  @default("PUBLISHED")
 
-  @@index([tutorId])
+  authorId String
+  author   User   @relation(fields: [authorId], references: [id])
+
+  categoryId String
+  category   Category @relation(fields: [categoryId], references: [id])
+
+  comments Comment[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([categoryId])
+  @@index([isBreaking])
 }
 
-model Booking {
-  id        String       @id @default(uuid())
-  studentId String
-  student   User         @relation("StudentToBooking", fields: [studentId], references: [id])
-  tutorId   String
-  tutor     TutorProfile @relation("TutorToBooking", fields: [tutorId], references: [id])
+model Comment {
+  id         String  @id @default(cuid())
+  text       String
+  isApproved Boolean @default(false)
 
-  slotId String
-  slot   AvailabilitySlot @relation("SlotToBooking", fields: [slotId], references: [id])
+  postId String
+  post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
 
-  status    BookingStatus @default(PENDING)
-  review    Review?
-  createdAt DateTime      @default(now())
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
 
-  @@index([studentId])
-  @@index([tutorId])
-  @@index([slotId])
-}
-
-model Review {
-  id        String       @id @default(uuid())
-  rating    Int
-  comment   String       @db.Text
-  bookingId String       @unique
-  booking   Booking      @relation(fields: [bookingId], references: [id])
-  studentId String
-  student   User         @relation(fields: [studentId], references: [id])
-  tutorId   String
-  tutor     TutorProfile @relation("TutorToReview", fields: [tutorId], references: [id])
-  createdAt DateTime     @default(now())
-
-  @@index([studentId])
-  @@index([tutorId])
+  createdAt DateTime @default(now())
 }
 
 model Session {
-  id        String   @id @default(uuid())
+  id        String   @id @default(cuid())
   expiresAt DateTime
   token     String   @unique
   createdAt DateTime @default(now())
@@ -135,7 +99,7 @@ model Session {
 }
 
 model Account {
-  id                    String    @id @default(uuid())
+  id                    String    @id @default(cuid())
   accountId             String
   providerId            String
   userId                String
@@ -155,7 +119,7 @@ model Account {
 }
 
 model Verification {
-  id         String   @id @default(uuid())
+  id         String   @id @default(cuid())
   identifier String
   value      String
   expiresAt  DateTime

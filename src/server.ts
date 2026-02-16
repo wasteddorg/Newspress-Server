@@ -8,7 +8,7 @@ async function server() {
         await prisma.$connect();
         console.log("Connected to the database succesfully");
         app.listen(PORT, () => {
-            console.log(`Skill Bridge is running on port ${PORT}`)
+            console.log(`Newspress server  is running on port ${PORT}`)
         });
     }
 
