@@ -10,9 +10,12 @@ app.use(cors({
     credentials: true,
 }));
 app.use(express.json());
+
 app.all("/api/auth/*", (req, res) => {
-    return toNodeHandler(auth)(req, res);
+  console.log("Auth route hit:", req.url); 
+  return toNodeHandler(auth)(req, res);
 });
+
 app.use("/api/v1/categories", CategoryRoutes);
 
 app.get("/", (req, res) => {
