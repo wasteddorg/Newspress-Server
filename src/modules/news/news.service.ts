@@ -4,10 +4,10 @@ const createNews = async (data: any, authorId: string) => {
     const baseSlug = data.title
         .trim()
         .toLowerCase()
-        .replace(/[\s_]+/g, "-") // সব স্পেস এবং আন্ডারস্কোরকে হাইফেন করবে
-        .replace(/[^\u0980-\u09FFa-z0-9-]/g, "") // বাংলা (\u0980-\u09FF) এবং ইংরেজি ব্যতিত সব স্পেশাল ক্যারেক্টার মুছবে
-        .replace(/-+/g, "-") // ডাবল হাইফেন থাকলে সিঙ্গেল করবে
-        .replace(/^-+|-+$/g, ""); // শুরুতে বা শেষে হাইফেন থাকলে মুছবে
+        .replace(/[\s_]+/g, "-") 
+        .replace(/[^\u0980-\u09FFa-z0-9-]/g, "") 
+        .replace(/-+/g, "-") 
+        .replace(/^-+|-+$/g, ""); 
 
     const slug = `${baseSlug}-${Date.now()}`;
 
@@ -32,7 +32,7 @@ const getAllNews = async () => {
 
 const getNewsBySlug = async (slug: string) => {
     try {
-        const result = await prisma.post.update({
+        return await prisma.post.update({
             where: { slug },
             data: {
                 viewCount: {
@@ -40,8 +40,10 @@ const getNewsBySlug = async (slug: string) => {
                 },
             },
             include: {
-                category: true,
-                author: { select: { name: true, image: true } },
+                category: true, 
+                author: { 
+                    select: { name: true, image: true } 
+                },
                 comments: {
                     include: {
                         user: { select: { name: true, image: true } },
@@ -49,13 +51,14 @@ const getNewsBySlug = async (slug: string) => {
                 },
             },
         });
-        return result;
     } catch (error) {
         return await prisma.post.findUnique({
             where: { slug },
             include: {
                 category: true,
-                author: { select: { name: true, image: true } },
+                author: { 
+                    select: { name: true, image: true } 
+                },
                 comments: {
                     include: {
                         user: { select: { name: true, image: true } },

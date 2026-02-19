@@ -34,7 +34,43 @@ const getCategories = async (req: Request, res: Response) => {
   }
 };
 
+const updateCategory = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { name } = req.body;
+    const result = await CategoryService.updateCategory(id, name);
+    res.status(200).json({
+      success: true,
+      message: "Category updated successfully!",
+      data: result
+    });
+  } catch (error: any) {
+    res.status(500).json({
+      success: false,
+      message: error.message || "Update failed"
+    });
+  }
+};
+
+const deleteCategory = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    await CategoryService.deleteCategory(id);
+    res.status(200).json({
+      success: true,
+      message: "Category deleted successfully!"
+    });
+  } catch (error: any) {
+    res.status(500).json({
+      success: false,
+      message: error.message || "Delete failed"
+    });
+  }
+};
+
 export const CategoryController = {
   createCategory,
-  getCategories
+  getCategories,
+  updateCategory,
+  deleteCategory
 };

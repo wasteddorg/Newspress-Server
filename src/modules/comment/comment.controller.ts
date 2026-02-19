@@ -22,7 +22,21 @@ const getPostComments = async (req: Request, res: Response) => {
     res.status(500).json({ message: error.message });
   }
 };
-
+const getComments = async (req: Request, res: Response) => {
+  try {
+    const result = await CommentService.getAllComments();
+    res.status(200).json({
+      success: true,
+      message: "Comments fetched successfully!",
+      data: result
+    });
+  } catch (error: any) {
+    res.status(500).json({
+      success: false,
+      message: error.message || "Failed to fetch comments"
+    });
+  }
+};
 const updateComment = async (req: Request, res: Response) => {
   try {
     const { commentId } = req.params;
@@ -72,5 +86,6 @@ export const CommentController = {
   createComment,
   updateComment,
   deleteComment,
+  getComments,
   getPostComments
 };

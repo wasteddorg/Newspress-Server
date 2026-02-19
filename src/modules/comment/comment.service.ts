@@ -60,6 +60,16 @@ const getCommentById = async (id: string) => {
   });
 };
 
+const getAllComments = async () => {
+  return await prisma.comment.findMany({
+    include: {
+      post: { select: { title: true, slug:true } }, 
+      user: { select: { name: true, role: true } } 
+    },
+    orderBy: { createdAt: 'desc' }
+  });
+};
+
 const updateComment = async (id: string, text: string) => {
   return await prisma.comment.update({
     where: { id },
@@ -78,5 +88,6 @@ export const CommentService = {
   getCommentById,
   updateComment,
   deleteComment,
+  getAllComments,
   getCommentsByPostId
 };

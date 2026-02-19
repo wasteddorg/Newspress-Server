@@ -10,6 +10,8 @@ router.post(
     CommentController.createComment
 );
 
+router.get("/", CommentController.getComments);
+
 router.get("/post/:postId", CommentController.getPostComments);
 
 router.patch(

@@ -1,43 +1,35 @@
-# 🌠 SkillBridge (স্কিলব্রিজ) - Advanced Tutor Booking API
+# NewsPress Backend - Advanced News Management API
 
-![TypeScript](https://img.shields.io/badge/typescript-%23007acc.svg?style=for-the-badge&logo=typescript&logoColor=white)
-![NodeJS](https://img.shields.io/badge/node.js-6DA55F?style=for-the-badge&logo=node.js&logoColor=white)
-![Express.js](https://img.shields.io/badge/express.js-%23404d59.svg?style=for-the-badge&logo=express&logoColor=white)
-![Prisma](https://img.shields.io/badge/Prisma-3982CE?style=for-the-badge&logo=Prisma&logoColor=white)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white)
-
-SkillBridge হলো একটি আধুনিক এবং শক্তিশালী টিউটর বুকিং প্ল্যাটফর্মের ব্যাকএন্ড সিস্টেম। এখানে একজন শিক্ষার্থী তার প্রয়োজন অনুযায়ী সেরা টিউটর খুঁজে পাওয়া থেকে শুরু করে বুকিং এবং রিভিউ পর্যন্ত সব কাজ নিখুঁতভাবে করতে পারবে।
+A high-performance, scalable, and secure RESTful API built to power the NewsPress ecosystem. This backend handles complex data relationships, real-time analytics, and secure administrative operations for a modern news platform.
 
 ---
 
-## 🚀 মূল ফিচারসমূহ (Key Features)
+## 🚀 Key Technical Features
 
-আমি এই প্রজেক্টটিতে অত্যন্ত জটিল লজিক এবং প্রফেশনাল স্ট্যান্ডার্ড বজায় রেখে নিচের কাজগুলো সম্পন্ন করেছি:
+This project implements professional-grade backend logic with a focus on data integrity and performance:
 
-### 🔍 ১. অ্যাডভান্সড সার্চ এবং ফিল্টারিং
-* **স্মার্ট সার্চ:** টিউটরের নাম বা বিষয় (Subject) লিখে সহজেই সার্চ করা যায়।
-* **ডাইনামিক ফিল্টার:** প্রাইস রেঞ্জ এবং রেটিং এর ওপর ভিত্তি করে সেরা টিউটর খুঁজে বের করার সুবিধা।
-* প্রিজমার **Complex Queries** ব্যবহার করে দ্রুত রেজাল্ট নিশ্চিত করা হয়েছে।
+### 📰 1. Dynamic Content & Slug Management
+* **Smart Slug Generation:** Automated, SEO-friendly slug generation with built-in support for Bengali (Unicode) and English characters.
+* **Timestamp Salting:** Implements unique suffixing logic using `Date.now()` to prevent slug collisions during concurrent post creation.
 
-### 📅 ২. স্মার্ট বুকিং সিস্টেম (Smart Booking)
-* **Database Transactions:** বুকিং করার সময় ডাটাবেস লেভেলে ট্রানজ্যাকশন ব্যবহার করা হয়েছে, যাতে স্লট বুকিং এবং স্ট্যাটাস আপডেট সবসময় নির্ভুল থাকে।
-* **Conflict Prevention:** ডাবল বুকিং রোধ করতে বুকিং করার সময় স্লটটির এভেইল্যাবিলিটি অটোমেটিক চেক করা হয়।
+### 📈 2. Real-time Analytics & View Tracking
+* **Atomic Increments:** Utilizes Prisma's atomic update operations for `viewCount` to ensure accuracy even under high traffic.
+* **Optimized Fetching:** Implements a fail-safe mechanism in news retrieval where data is served via `findUnique` if an update operation encounters a database lock.
 
-### 📊 ৩. টিউটর ড্যাশবোর্ড স্ট্যাটিস্টিকস
-* টিউটররা তাদের ড্যাশবোর্ডে **Real-time** পরিসংখ্যান দেখতে পাবেন।
-* এতে মোট সেশন, অভিজ্ঞতার বছর এবং অটো-ক্যালকুলেটেড এভারেজ রেটিং অন্তর্ভুক্ত।
+### 🛡️ 3. Role-Based Access Control (RBAC)
+* **Multi-Level Authentication:** Granular permission system for `ADMIN` and `USER` roles.
+* **Protected Routes:** Sensitive operations like news creation, updates, and deletions are strictly guarded by custom middleware.
 
-### 🔄 ৪. বুকিং স্ট্যাটাস ম্যানেজমেন্ট
-* পুরো বুকিং লাইফসাইকেল (Confirmed, Completed, Cancelled) সুন্দরভাবে ম্যানেজ করা হয়েছে।
-* **Auto-Release Logic:** কোনো বুকিং বাতিল (CANCELLED) হলে ওই স্লটটি স্বয়ংক্রিয়ভাবে আবার সবার জন্য উন্মুক্ত হয়ে যায়।
+### 📂 4. Complex Data Modeling (Prisma & PostgreSQL)
+* **Relational Integrity:** Manages deep-level relations between Posts, Categories, Authors, and Comments.
+* **Eager Loading:** Uses optimized `include` and `select` queries to fetch nested data (like author profiles and user comments) in a single database round-trip.
 
-### ⭐ ৫. রিভিউ এবং রেটিং সিস্টেম
-* ক্লাস সম্পন্ন হওয়ার পর শিক্ষার্থীরা রেটিং এবং ফিডব্যাক দিতে পারে।
-* প্রতিটি নতুন রিভিউর সাথে সাথে টিউটরের **Average Rating** স্বয়ংক্রিয়ভাবে আপডেট হয়।
+### 💬 5. Interactive Commenting System
+* **Threaded Metadata:** Efficiently serves comments along with user identity (names/images) while maintaining high performance using PostgreSQL indexing.
 
 ---
 
-## 🛠️ টেকনোলজি স্ট্যাক (Tech Stack)
+## 🛠️ Technology Stack
 
 | Category | Technology |
 | :--- | :--- |
@@ -46,6 +38,16 @@ SkillBridge হলো একটি আধুনিক এবং শক্তি�
 | **Database** | PostgreSQL |
 | **ORM** | Prisma |
 | **Language** | TypeScript |
-| **Auth** | Better-Auth (Session & Account Management) |
+| **Authentication** | Custom Auth Middleware (JWT/Session based) |
 
 ---
+
+## ⚙️ Core Architecture
+
+* **Service-Controller Pattern:** Decoupled architecture where the `Controller` handles HTTP requests and the `Service` layer manages business logic and database interactions.
+* **Error Handling:** Centralized global error handling for consistent API responses.
+* **Sanitization:** Regex-based sanitization for URLs and Titles to maintain clean data entry.
+
+---
+
+**Engineered for Speed, Scalability, and Clean Content Delivery.**
