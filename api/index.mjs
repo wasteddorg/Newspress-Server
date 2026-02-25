@@ -8,9 +8,9 @@ import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 
 // src/lib/prisma.ts
-import "dotenv/config";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "@prisma/client";
+import "dotenv/config";
 var adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
 var prisma = new PrismaClient({ adapter });
 
@@ -744,7 +744,6 @@ app.use(
 );
 app.use(express5.json());
 app.all("/api/auth/*", (req, res) => {
-  console.log("Auth route hit:", req.url);
   return toNodeHandler(auth)(req, res);
 });
 app.use("/api/v1/categories", CategoryRoutes);

@@ -21,7 +21,6 @@ app.use(
 app.use(express.json());
 
 app.all("/api/auth/*", (req, res) => {
-  console.log("Auth route hit:", req.url);
   return toNodeHandler(auth)(req, res);
 });
 
