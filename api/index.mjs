@@ -1,7 +1,7 @@
 // src/app.ts
-import express5 from "express";
-import cors from "cors";
 import { toNodeHandler } from "better-auth/node";
+import cors from "cors";
+import express5 from "express";
 
 // src/lib/auth.ts
 import { betterAuth } from "better-auth";
@@ -19,7 +19,31 @@ var auth = betterAuth({
   database: prismaAdapter(prisma, { provider: "postgresql" }),
   baseURL: process.env.BETTER_AUTH_URL,
   basePath: "/api/auth",
-  trustedOrigins: ["http://localhost:3000"],
+  advanced: {
+    useSecureCookies: true,
+    defaultCookieAttributes: {
+      sameSite: "none",
+      secure: true
+    },
+    cookies: {
+      sessionToken: {
+        attributes: {
+          sameSite: "none",
+          secure: true
+        }
+      },
+      sessionData: {
+        attributes: {
+          sameSite: "none",
+          secure: true
+        }
+      }
+    }
+  },
+  trustedOrigins: [
+    "http://localhost:3000",
+    "https://newspress-client-flame.vercel.app"
+  ],
   emailAndPassword: { enabled: true },
   user: {
     additionalFields: {
@@ -196,182 +220,8 @@ router.delete(
 );
 var CategoryRoutes = router;
 
-// src/modules/news/news.routes.ts
-import express2 from "express";
-
-// src/modules/news/news.service.ts
-var createNews = async (data, authorId) => {
-  const baseSlug = data.title.trim().toLowerCase().replace(/[\s_]+/g, "-").replace(/[^\u0980-\u09FFa-z0-9-]/g, "").replace(/-+/g, "-").replace(/^-+|-+$/g, "");
-  const slug = `${baseSlug}-${Date.now()}`;
-  return await prisma.post.create({
-    data: {
-      ...data,
-      slug,
-      authorId
-    }
-  });
-};
-var getAllNews = async () => {
-  return await prisma.post.findMany({
-    include: {
-      category: { select: { name: true, slug: true } },
-      author: { select: { name: true, image: true } }
-    },
-    orderBy: { createdAt: "desc" }
-  });
-};
-var getNewsBySlug = async (slug) => {
-  try {
-    return await prisma.post.update({
-      where: { slug },
-      data: {
-        viewCount: {
-          increment: 1
-        }
-      },
-      include: {
-        category: true,
-        author: {
-          select: { name: true, image: true }
-        },
-        comments: {
-          include: {
-            user: { select: { name: true, image: true } }
-          }
-        }
-      }
-    });
-  } catch (error) {
-    return await prisma.post.findUnique({
-      where: { slug },
-      include: {
-        category: true,
-        author: {
-          select: { name: true, image: true }
-        },
-        comments: {
-          include: {
-            user: { select: { name: true, image: true } }
-          }
-        }
-      }
-    });
-  }
-};
-var updateNews = async (id, data) => {
-  let updateData = { ...data };
-  if (data.title) {
-    updateData.slug = data.title.trim().toLowerCase().replace(/[^\w\s-]/g, "").replace(/[\s_-]+/g, "-").replace(/^-+|-+$/g, "");
-  }
-  return await prisma.post.update({
-    where: { id },
-    data: updateData
-  });
-};
-var deleteNews = async (id) => {
-  return await prisma.post.delete({
-    where: { id }
-  });
-};
-var NewsService = {
-  createNews,
-  getAllNews,
-  getNewsBySlug,
-  updateNews,
-  deleteNews
-};
-
-// src/modules/news/news.controller.ts
-var createNews2 = async (req, res) => {
-  try {
-    const user = req.user;
-    if (!user) {
-      return res.status(401).json({
-        success: false,
-        message: "User not found in request"
-      });
-    }
-    const result = await NewsService.createNews(req.body, user.id);
-    res.status(201).json({
-      success: true,
-      message: "News created successfully",
-      data: result
-    });
-  } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
-  }
-};
-var getAllNews2 = async (req, res) => {
-  try {
-    const result = await NewsService.getAllNews();
-    res.status(200).json({ success: true, data: result });
-  } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
-  }
-};
-var getSingleNews = async (req, res) => {
-  try {
-    const { slug } = req.params;
-    const decodedSlug = decodeURIComponent(slug);
-    const result = await NewsService.getNewsBySlug(decodedSlug);
-    if (!result) {
-      return res.status(404).json({
-        success: false,
-        message: "News not found in database"
-      });
-    }
-    res.status(200).json({ success: true, data: result });
-  } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
-  }
-};
-var updateNews2 = async (req, res) => {
-  try {
-    const id = req.params.id;
-    if (!id) {
-      return res.status(400).json({ success: false, message: "News ID is required" });
-    }
-    const result = await NewsService.updateNews(id, req.body);
-    res.status(200).json({
-      success: true,
-      message: "News updated successfully",
-      data: result
-    });
-  } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
-  }
-};
-var deleteNews2 = async (req, res) => {
-  try {
-    const id = req.params.id;
-    if (!id) {
-      return res.status(400).json({ success: false, message: "News ID is required" });
-    }
-    await NewsService.deleteNews(id);
-    res.status(200).json({ success: true, message: "News deleted successfully" });
-  } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
-  }
-};
-var NewsController = {
-  createNews: createNews2,
-  getAllNews: getAllNews2,
-  getSingleNews,
-  updateNews: updateNews2,
-  deleteNews: deleteNews2
-};
-
-// src/modules/news/news.routes.ts
-var router2 = express2.Router();
-router2.post("/create-news", auth_default("ADMIN" /* ADMIN */), NewsController.createNews);
-router2.get("/", NewsController.getAllNews);
-router2.get("/slug/:slug", NewsController.getSingleNews);
-router2.patch("/update-news/:id", NewsController.updateNews);
-router2.delete("/:id", auth_default("ADMIN" /* ADMIN */), NewsController.deleteNews);
-var NewsRoutes = router2;
-
 // src/modules/comment/comment.routes.ts
-import express3 from "express";
+import express2 from "express";
 
 // src/modules/comment/comment.service.ts
 var createComment = async (data) => {
@@ -539,25 +389,199 @@ var CommentController = {
 };
 
 // src/modules/comment/comment.routes.ts
-var router3 = express3.Router();
-router3.post(
+var router2 = express2.Router();
+router2.post(
   "/",
   auth_default("USER" /* USER */, "ADMIN" /* ADMIN */),
   CommentController.createComment
 );
-router3.get("/", CommentController.getComments);
-router3.get("/post/:postId", CommentController.getPostComments);
-router3.patch(
+router2.get("/", CommentController.getComments);
+router2.get("/post/:postId", CommentController.getPostComments);
+router2.patch(
   "/:commentId",
   auth_default("USER" /* USER */, "ADMIN" /* ADMIN */),
   CommentController.updateComment
 );
-router3.delete(
+router2.delete(
   "/:commentId",
   auth_default("USER" /* USER */, "ADMIN" /* ADMIN */),
   CommentController.deleteComment
 );
-var CommentRoutes = router3;
+var CommentRoutes = router2;
+
+// src/modules/news/news.routes.ts
+import express3 from "express";
+
+// src/modules/news/news.service.ts
+var createNews = async (data, authorId) => {
+  const baseSlug = data.title.trim().toLowerCase().replace(/[\s_]+/g, "-").replace(/[^\u0980-\u09FFa-z0-9-]/g, "").replace(/-+/g, "-").replace(/^-+|-+$/g, "");
+  const slug = `${baseSlug}-${Date.now()}`;
+  return await prisma.post.create({
+    data: {
+      ...data,
+      slug,
+      authorId
+    }
+  });
+};
+var getAllNews = async () => {
+  return await prisma.post.findMany({
+    include: {
+      category: { select: { name: true, slug: true } },
+      author: { select: { name: true, image: true } }
+    },
+    orderBy: { createdAt: "desc" }
+  });
+};
+var getNewsBySlug = async (slug) => {
+  try {
+    return await prisma.post.update({
+      where: { slug },
+      data: {
+        viewCount: {
+          increment: 1
+        }
+      },
+      include: {
+        category: true,
+        author: {
+          select: { name: true, image: true }
+        },
+        comments: {
+          include: {
+            user: { select: { name: true, image: true } }
+          }
+        }
+      }
+    });
+  } catch (error) {
+    return await prisma.post.findUnique({
+      where: { slug },
+      include: {
+        category: true,
+        author: {
+          select: { name: true, image: true }
+        },
+        comments: {
+          include: {
+            user: { select: { name: true, image: true } }
+          }
+        }
+      }
+    });
+  }
+};
+var updateNews = async (id, data) => {
+  let updateData = { ...data };
+  if (data.title) {
+    updateData.slug = data.title.trim().toLowerCase().replace(/[^\w\s-]/g, "").replace(/[\s_-]+/g, "-").replace(/^-+|-+$/g, "");
+  }
+  return await prisma.post.update({
+    where: { id },
+    data: updateData
+  });
+};
+var deleteNews = async (id) => {
+  return await prisma.post.delete({
+    where: { id }
+  });
+};
+var NewsService = {
+  createNews,
+  getAllNews,
+  getNewsBySlug,
+  updateNews,
+  deleteNews
+};
+
+// src/modules/news/news.controller.ts
+var createNews2 = async (req, res) => {
+  try {
+    const user = req.user;
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        message: "User not found in request"
+      });
+    }
+    const result = await NewsService.createNews(req.body, user.id);
+    res.status(201).json({
+      success: true,
+      message: "News created successfully",
+      data: result
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+var getAllNews2 = async (req, res) => {
+  try {
+    const result = await NewsService.getAllNews();
+    res.status(200).json({ success: true, data: result });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+var getSingleNews = async (req, res) => {
+  try {
+    const { slug } = req.params;
+    const decodedSlug = decodeURIComponent(slug);
+    const result = await NewsService.getNewsBySlug(decodedSlug);
+    if (!result) {
+      return res.status(404).json({
+        success: false,
+        message: "News not found in database"
+      });
+    }
+    res.status(200).json({ success: true, data: result });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+var updateNews2 = async (req, res) => {
+  try {
+    const id = req.params.id;
+    if (!id) {
+      return res.status(400).json({ success: false, message: "News ID is required" });
+    }
+    const result = await NewsService.updateNews(id, req.body);
+    res.status(200).json({
+      success: true,
+      message: "News updated successfully",
+      data: result
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+var deleteNews2 = async (req, res) => {
+  try {
+    const id = req.params.id;
+    if (!id) {
+      return res.status(400).json({ success: false, message: "News ID is required" });
+    }
+    await NewsService.deleteNews(id);
+    res.status(200).json({ success: true, message: "News deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+var NewsController = {
+  createNews: createNews2,
+  getAllNews: getAllNews2,
+  getSingleNews,
+  updateNews: updateNews2,
+  deleteNews: deleteNews2
+};
+
+// src/modules/news/news.routes.ts
+var router3 = express3.Router();
+router3.post("/create-news", auth_default("ADMIN" /* ADMIN */), NewsController.createNews);
+router3.get("/", NewsController.getAllNews);
+router3.get("/slug/:slug", NewsController.getSingleNews);
+router3.patch("/update-news/:id", NewsController.updateNews);
+router3.delete("/:id", auth_default("ADMIN" /* ADMIN */), NewsController.deleteNews);
+var NewsRoutes = router3;
 
 // src/modules/stats/stats.routes.ts
 import { Router } from "express";
@@ -707,10 +731,15 @@ var UserRoutes = router5;
 
 // src/app.ts
 var app = express5();
-app.use(cors({
-  origin: "http://localhost:3000",
-  credentials: true
-}));
+app.use(
+  cors({
+    origin: [
+      "http://localhost:3000",
+      "https://newspress-client-flame.vercel.app"
+    ],
+    credentials: true
+  })
+);
 app.use(express5.json());
 app.all("/api/auth/*", (req, res) => {
   console.log("Auth route hit:", req.url);
